@@ -1,17 +1,17 @@
 require 'matrix'
 
 class ExplorableGround
-    attr_reader :rows, :cols
+    attr_reader :rows, :cols, :area_permited
 
     def initialize(rows, cols)
         @rows = rows
         @cols = cols
+        @area_permited = create_explorable_ground
     end
 
     def create_explorable_ground
         Matrix.build(rows, cols) { |row, col| nil}
     end
-    
 end
 
 class Probe
@@ -23,27 +23,33 @@ class Probe
         set_position(position)
     end
 
-    def can_move?
-        true
+    def can_move?(coordinate)
+        x, y = coordinate
+        max_x, max_y = @explorable_ground.rows, @explorable_ground.cols
+        return true if x.between?(0, max_x-1) && y.between?(0, max_y-1)
+        false
     end
 
     def set_position(position)
         x = position[0]
         y = position[1]
-        @explorable_ground[x, y] = self
+        @position = x, y
+        @explorable_ground.area_permited[x, y] = self
     end
     
 
     def move
-        if self.can_move?
-            start_x, start_y = @position
-            new_x, new_y= start_x, start_y+1
+        start_x, start_y = @position
+        new_x, new_y= start_x, start_y+1
+        if can_move?([new_x, new_y])
             @position = new_x, new_y
-            @explorable_ground[start_x, start_y] = nil
-            @explorable_ground[new_x, new_y] = self
+            @explorable_ground.area_permited[start_x, start_y] = nil
+            @explorable_ground.area_permited[new_x, new_y] = self    
+            return [@position, @direction]
         end
+        @position = start_x, start_y
+        [@position, @direction]
     end
-    
 
 end
 
